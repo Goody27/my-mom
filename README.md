@@ -45,7 +45,7 @@ MyMomが検知する → MyMomが判断する → MyMomが実行する → ユ�
 |---------|-------------|---------|
 | **Inception（構想）** | 要件定義・ユーザーストーリー・ドメインモデル・アプリ設計を生成 | `aidlc-docs/inception/` |
 | **Construction（実装）** | ユニットごとの機能設計・NFR・インフラ設計・Lambdaコード生成 | `aidlc-docs/construction/` + `src/` |
-| **Operation（改善）** | 8タイプのAI評価者による10ループのマルチ評価者レビュー | `review/loop_log.md` |
+| **Operation（改善）** | 8タイプのAI評価者による15ループのマルチ評価者レビュー（致命的バグ4件含む修正適用） | `../review/loop_log.md` |
 
 ---
 
@@ -118,10 +118,42 @@ aidlc-docs/
 ## クイックスタート
 
 ```bash
-sam build && sam deploy --guided
+# 1. インフラデプロイ（Bedrock Agent + Lambda + DynamoDB 一式）
+cd infra && terraform init && terraform apply
+
+# 2. 初期データ投入
+./scripts/seed.sh <あなたのSlack User ID>
+
+# 3. デモ即時実行（審査員の前で使う）
+./scripts/demo-trigger.sh
 ```
 
 詳細: [aidlc-docs/construction/build-and-test/build-instructions.md](aidlc-docs/construction/build-and-test/build-instructions.md)
+
+---
+
+## デモ台本（審査員向け）
+
+> **所要時間**: 約60秒  
+> **必要なもの**: Slackアプリインストール済み端末 × 2台（送り手・受け手）
+
+```
+1. 「皆さん、今週末の飲み会、断れてますか？」
+   ↓ 会場に問いかけて共感を作る
+
+2. スマホを取り出す
+   「さっき上司からこんなDMが届きました」
+   → 事前に用意した"催促DM"を受け手スマホで見せる
+
+3. ./scripts/demo-trigger.sh を実行
+   「MyMomに任せます」
+   ↓ 5〜10秒でCloudWatch Logsに Bedrock のトレースが流れる（画面投影）
+
+4. 受け手スマホに断り文が届く
+   「断っておいたよ」通知が送り手スマホにも届く
+
+5. 「あなたは何もしていない。お母さんがもう断っていた。」
+```
 
 ---
 

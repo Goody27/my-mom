@@ -1,30 +1,3 @@
-# SSM Parameter Store から設定値を読み取る
-# 値は bootstrap/setup-ssm.sh で初期登録する
-locals {
-  ssm_prefix = "/mymom/${var.environment}"
-}
-
-data "aws_ssm_parameter" "slack_bot_token_arn" {
-  name            = "${local.ssm_prefix}/slack_bot_token_arn"
-  with_decryption = true
-}
-
-data "aws_ssm_parameter" "slack_signing_secret_arn" {
-  name            = "${local.ssm_prefix}/slack_signing_secret_arn"
-  with_decryption = true
-}
-
-data "aws_ssm_parameter" "bedrock_agent_id" {
-  name            = "${local.ssm_prefix}/bedrock_agent_id"
-  with_decryption = false
-}
-
-data "aws_ssm_parameter" "bedrock_agent_alias_id" {
-  name            = "${local.ssm_prefix}/bedrock_agent_alias_id"
-  with_decryption = false
-}
-
-data "aws_ssm_parameter" "bedrock_guardrail_id" {
-  name            = "${local.ssm_prefix}/bedrock_guardrail_id"
-  with_decryption = false
-}
+# SSM Parameter Store はこのプロジェクトでは使用しない。
+# Slack Token/Secret は var.slack_bot_token_arn / var.slack_signing_secret_arn (input variable) で渡す。
+# Bedrock Agent ID 等は bedrock.tf のリソース参照で取得する。

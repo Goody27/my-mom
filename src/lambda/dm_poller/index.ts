@@ -3,7 +3,6 @@ import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { WebClient } from "@slack/web-api";
 import { SecretsManagerClient, GetSecretValueCommand } from "@aws-sdk/client-secrets-manager";
-import { randomUUID } from "crypto";
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 const sm = new SecretsManagerClient({});
@@ -23,30 +22,40 @@ async function getSlackClient(): Promise<WebClient> {
   return slackClient;
 }
 
+async function fetchAllImChannels(slack: WebClient, botUserId: string) {
+  const channels: { id: string; user: string }[] = [];
+  let cursor: string | undefined;
+
+  do {
+    const res = await slack.conversations.list({
+      types: "im",
+      limit: 200,
+      ...(cursor ? { cursor } : {}),
+    });
+    for (const ch of res.channels ?? []) {
+      if (ch.id && ch.user && ch.user !== botUserId) {
+        channels.push({ id: ch.id, user: ch.user });
+      }
+    }
+    cursor = res.response_metadata?.next_cursor ?? undefined;
+  } while (cursor);
+
+  return channels;
+}
+
 export const handler: ScheduledHandler = async () => {
   const slack = await getSlackClient();
 
-  // Bot自身のユーザーIDを取得
   const authResult = await slack.auth.test();
   const botUserId = authResult.user_id as string;
 
-  // DMチャンネル一覧を取得（im = Direct Message）
-  const channels = await slack.conversations.list({
-    types: "im",
-    limit: 100,
-  });
-
-  if (!channels.channels) return;
+  const channels = await fetchAllImChannels(slack, botUserId);
 
   const now = Math.floor(Date.now() / 1000);
-  // 直近1分間のメッセージを対象
+  // 直近70秒（1分ポーリング + 10秒バッファ）
   const oldest = String(now - 70);
 
-  for (const channel of channels.channels) {
-    if (!channel.id || !channel.user) continue;
-    // bot自身のDMはスキップ
-    if (channel.user === botUserId) continue;
-
+  for (const channel of channels) {
     const history = await slack.conversations.history({
       channel: channel.id,
       oldest,
@@ -56,28 +65,39 @@ export const handler: ScheduledHandler = async () => {
     if (!history.messages) continue;
 
     for (const msg of history.messages) {
-      // botからのメッセージはスキップ
       if (msg.bot_id || msg.subtype) continue;
       if (!msg.text || !msg.ts) continue;
 
-      const requestId = randomUUID();
+      // requestId を channelId+messageTs の決定論的キーにすることで
+      // ConditionExpression による完全な冪等性を実現する
+      const requestId = `${channel.id}_${msg.ts}`;
 
-      await ddb.send(
-        new PutCommand({
-          TableName: REQUESTS_TABLE,
-          Item: {
-            requestId,
-            userId: channel.user,
-            channelId: channel.id,
-            messageTs: msg.ts,
-            rawText: msg.text,
-            status: "PENDING",
-            createdAt: new Date().toISOString(),
-          },
-          // 同じSlackメッセージを重複登録しない
-          ConditionExpression: "attribute_not_exists(requestId)",
-        })
-      );
+      try {
+        await ddb.send(
+          new PutCommand({
+            TableName: REQUESTS_TABLE,
+            Item: {
+              requestId,
+              userId: channel.user,
+              channelId: channel.id,
+              messageTs: msg.ts,
+              rawText: msg.text,
+              status: "PENDING",
+              createdAt: new Date().toISOString(),
+            },
+            ConditionExpression: "attribute_not_exists(requestId)",
+          })
+        );
+      } catch (err: unknown) {
+        // ConditionalCheckFailedException = 既に処理済み → 正常
+        if (
+          err instanceof Error &&
+          err.name === "ConditionalCheckFailedException"
+        ) {
+          continue;
+        }
+        throw err;
+      }
     }
   }
 };

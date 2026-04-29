@@ -53,6 +53,17 @@
 | Security Baseline | Yes | Requirements Analysis |
 | Property-Based Testing | No | Requirements Analysis |
 
+## Evaluation Loop Status
+
+| ループ | 実施日 | フォーカス | 主な改善 |
+|--------|--------|-----------|---------|
+| 1〜10 | 2026-04-28〜29 | 設計全般 | SQSバグ修正・Zapier比較・Ahaモーメント・unit economics・fallback 3パターン |
+| 11 | 2026-04-29 | 実装コード品質 | sla_handler timeout修正・sender通知追加・dm_pollerページネーション+冪等性 |
+| 12 | 2026-04-29 | セキュリティ&TOS | AIフッター実装・IAM改善指摘・オンボーディング設計追記 |
+| 13 | 2026-04-29 | デモシナリオ | demo-trigger.sh作成・デモ台本追加 |
+| 14 | 2026-04-29 | AWS技術深化 | bedrock.tf新規作成（致命的ブロッカー解消） |
+| 15 | 2026-04-29 | ハッカソン勝利戦略 | seed.sh作成・README台本追加・総合スコア評価 |
+
 ## Current Status
 
-Construction phase in progress. MVP unit (slack-decline-agent) design complete; code generation pending.
+評価ループ11〜15完了。主要ブロッカー（bedrock.tf未実装・sla_handler timeout・sender通知欠損）を解消。次タスク: Code Generation（chat-ui・personality-analyzer）。

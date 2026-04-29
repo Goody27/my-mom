@@ -51,9 +51,9 @@ resource "aws_lambda_function" "analyzer" {
       JUDGEMENT_LOGS_TABLE   = aws_dynamodb_table.judgement_logs.name
       SEND_QUEUE_URL         = aws_sqs_queue.send_queue.url
       ESCALATION_TOPIC_ARN   = aws_sns_topic.escalation.arn
-      BEDROCK_AGENT_ID       = var.bedrock_agent_id
-      BEDROCK_AGENT_ALIAS_ID = var.bedrock_agent_alias_id
-      BEDROCK_GUARDRAIL_ID   = var.bedrock_guardrail_id
+      BEDROCK_AGENT_ID       = aws_bedrockagent_agent.mymom.agent_id
+      BEDROCK_AGENT_ALIAS_ID = aws_bedrockagent_agent_alias.mymom_live.agent_alias_id
+      BEDROCK_GUARDRAIL_ID   = aws_bedrockagent_guardrail.mymom.guardrail_id
     }
   }
 
@@ -149,7 +149,7 @@ resource "aws_lambda_function" "sla_handler" {
   runtime       = local.lambda_runtime
   handler       = "index.handler"
   filename      = "${local.lambda_src}/sla_handler/index.zip"
-  timeout       = 60
+  timeout       = 360 # SLA 5分待機 (300s) + 処理余裕 60s
   memory_size   = 256
 
   environment {

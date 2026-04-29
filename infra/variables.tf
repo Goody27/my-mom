@@ -18,20 +18,5 @@ variable "slack_signing_secret_arn" {
   description = "Secrets ManagerにあるSlack Signing SecretのARN"
 }
 
-variable "bedrock_agent_id" {
-  type        = string
-  description = "Bedrock AgentのID（コンソールで作成後に設定）"
-  default     = ""
-}
-
-variable "bedrock_agent_alias_id" {
-  type        = string
-  description = "Bedrock AgentのAlias ID"
-  default     = "TSTALIASID"
-}
-
-variable "bedrock_guardrail_id" {
-  type        = string
-  description = "Bedrock GuardrailsのID"
-  default     = ""
-}
+# bedrock_agent_id, bedrock_agent_alias_id, bedrock_guardrail_id は
+# bedrock.tf で Terraform が作成するため input variable として不要。

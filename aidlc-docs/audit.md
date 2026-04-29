@@ -42,5 +42,5 @@
 ### AI-DLC Evaluation Loop
 **Timestamp**: 2026-04-28 — 2026-04-29
 **Note**: 10-loop multi-evaluator review (倫理/AI-DLC/投資家/AWS技術/悪魔/スタートアップ/ユーザー/マーケティング)
-**Output**: `review/loop_log.md` (MyMomIdea reference)
+**Output**: `../review/loop_log.md` (MyMomIdea reference)
 **Key improvements**: SQS bug fix, Zapier comparison, Ahaモーメント設計, unit economics, fallback 3 patterns

@@ -52,25 +52,38 @@ async function processRecord(record: SQSRecord): Promise<void> {
 
   const slack = await getSlackClient();
 
-  // Slack メッセージ送信（Block Kit でクイックリプライボタン付き）
+  // 断り文 + AIフッター（NFR-06: 第三者への倫理的配慮）
+  const replyWithFooter = `${log.replyText}\n\n_（このメッセージはAIアシスタント MyMom により生成されました）_`;
+
+  // 相手方チャンネルへ断り文を送信
   await slack.chat.postMessage({
     channel: request.channelId,
     blocks: [
       {
         type: "section",
-        text: { type: "mrkdwn", text: log.replyText },
+        text: { type: "mrkdwn", text: replyWithFooter },
       },
-      {
-        type: "actions",
-        block_id: `actions_${requestId}`,
-        elements: log.quickReplies.map((label: string, i: number) => ({
-          type: "button",
-          text: { type: "plain_text", text: label },
-          action_id: `quick_reply_${i}`,
-          value: JSON.stringify({ requestId, reply: label }),
-        })),
-      },
+      ...(log.quickReplies?.length
+        ? [
+            {
+              type: "actions",
+              block_id: `actions_${requestId}`,
+              elements: log.quickReplies.map((label: string, i: number) => ({
+                type: "button",
+                text: { type: "plain_text", text: label },
+                action_id: `quick_reply_${i}`,
+                value: JSON.stringify({ requestId, reply: label }),
+              })),
+            },
+          ]
+        : []),
     ],
+  });
+
+  // ユーザー本人へ「断っておいたよ」通知（Push型の根幹体験）
+  await slack.chat.postMessage({
+    channel: request.userId,
+    text: `✅ *断っておいたよ。*\n\n> ${log.replyText}\n\nお母さんがあなたの代わりに送っておいたよ。何もしなくていいからね。`,
   });
 
   // 依存スコアをインクリメント（使うほど依存させる設計）

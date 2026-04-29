@@ -188,11 +188,16 @@ resource "aws_iam_role_policy" "sla_handler" {
       {
         Effect   = "Allow"
         Action   = ["dynamodb:GetItem"]
-        Resource = [aws_dynamodb_table.plans.arn, aws_dynamodb_table.requests.arn]
+        Resource = [aws_dynamodb_table.plans.arn]
       },
       {
         Effect   = "Allow"
         Action   = ["dynamodb:GetItem", "dynamodb:UpdateItem"]
+        Resource = [aws_dynamodb_table.requests.arn]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["dynamodb:GetItem"]
         Resource = [aws_dynamodb_table.judgement_logs.arn]
       },
       {
