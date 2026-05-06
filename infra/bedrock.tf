@@ -120,8 +120,8 @@ resource "aws_bedrockagent_agent" "mymom" {
   # Guardrails version は null_resource で発行後、手動または tfvars で指定する。
   # ハッカソン期間中は "DRAFT" を使用（版が安定したら番号に固定）。
   guardrail_configuration {
-    guardrail_id      = aws_bedrock_guardrail.mymom.guardrail_id
-    guardrail_version = "DRAFT"
+    guardrail_identifier = aws_bedrock_guardrail.mymom.guardrail_id
+    guardrail_version    = "DRAFT"
   }
 
   depends_on = [null_resource.guardrail_version]
