@@ -9,6 +9,12 @@ data "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
 }
 
+# 前回の中断 apply で作成済みのロールを state に取り込む
+import {
+  to = aws_iam_role.github_deploy
+  id = "mymom-github-deploy-role"
+}
+
 resource "aws_iam_role" "github_deploy" {
   name = "mymom-github-deploy-role"
 
