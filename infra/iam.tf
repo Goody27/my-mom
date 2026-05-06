@@ -78,7 +78,7 @@ resource "aws_iam_role_policy" "analyzer" {
       {
         Effect   = "Allow"
         Action   = ["bedrock:InvokeAgent"]
-        Resource = ["*"]
+        Resource = [aws_bedrockagent_agent.mymom.agent_arn]
       },
       {
         Effect   = "Allow"
@@ -117,7 +117,7 @@ resource "aws_iam_role_policy" "sender" {
       },
       {
         Effect   = "Allow"
-        Action   = ["dynamodb:PutItem"]
+        Action   = ["dynamodb:GetItem"]
         Resource = [aws_dynamodb_table.judgement_logs.arn]
       },
       {
@@ -132,8 +132,8 @@ resource "aws_iam_role_policy" "sender" {
       },
       {
         Effect   = "Allow"
-        Action   = ["lambda:InvokeFunction"]
-        Resource = [aws_lambda_function.sla_handler.arn]
+        Action   = ["scheduler:CreateSchedule"]
+        Resource = ["arn:aws:scheduler:*:*:schedule/mymom-sla/*"]
       },
       {
         Effect   = "Allow"
@@ -157,13 +157,52 @@ resource "aws_iam_role_policy" "interaction_handler" {
     Statement = [
       {
         Effect   = "Allow"
-        Action   = ["dynamodb:UpdateItem"]
+        Action   = ["dynamodb:GetItem", "dynamodb:UpdateItem"]
         Resource = [aws_dynamodb_table.requests.arn]
       },
       {
         Effect   = "Allow"
         Action   = ["secretsmanager:GetSecretValue"]
         Resource = [var.slack_bot_token_arn, var.slack_signing_secret_arn]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+        Resource = ["arn:aws:logs:*:*:*"]
+      }
+    ]
+  })
+}
+
+# ── personality-analyzer ─────────────────────────────────────
+resource "aws_iam_role" "personality_analyzer" {
+  name               = "mymom-personality-analyzer-role"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume.json
+}
+
+resource "aws_iam_role_policy" "personality_analyzer" {
+  role = aws_iam_role.personality_analyzer.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["dynamodb:Query"]
+        Resource = [
+          aws_dynamodb_table.judgement_logs.arn,
+          "${aws_dynamodb_table.judgement_logs.arn}/index/userId-index",
+          aws_dynamodb_table.dependency_scores.arn,
+        ]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["dynamodb:PutItem"]
+        Resource = [aws_dynamodb_table.personality_profiles.arn]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["bedrock:InvokeModel"]
+        Resource = ["*"]
       },
       {
         Effect   = "Allow"

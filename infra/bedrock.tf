@@ -1,5 +1,6 @@
 # ── Bedrock Guardrails ─────────────────────────────────────────
-resource "aws_bedrockagent_guardrail" "mymom" {
+# 正しい名前空間: aws_bedrock_guardrail（Guardrails は bedrockagent ではなく bedrock 名前空間）
+resource "aws_bedrock_guardrail" "mymom" {
   name                      = "mymom-ethics-guardrail"
   blocked_input_messaging   = "このリクエストはお母さんには処理できないよ。ごめんね。"
   blocked_outputs_messaging = "この内容は送れないよ。お母さんが止めておいたからね。"
@@ -29,9 +30,23 @@ resource "aws_bedrockagent_guardrail" "mymom" {
   }
 }
 
-resource "aws_bedrockagent_guardrail_version" "mymom_v1" {
-  guardrail_id = aws_bedrockagent_guardrail.mymom.guardrail_id
-  description  = "v1 — 初回リリース"
+# Guardrail version は Terraform リソースが存在しないため CLI で発行する。
+# null_resource で terraform apply 後に自動実行。
+resource "null_resource" "guardrail_version" {
+  triggers = {
+    guardrail_id = aws_bedrock_guardrail.mymom.id
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOC
+      aws bedrock create-guardrail-version \
+        --guardrail-identifier ${aws_bedrock_guardrail.mymom.id} \
+        --region ${var.aws_region} \
+        --description "v1 — 初回リリース" \
+        --query 'version' --output text > /tmp/mymom_guardrail_version.txt
+      echo "Guardrail version published: $(cat /tmp/mymom_guardrail_version.txt)"
+    EOC
+  }
 }
 
 # ── Bedrock Agent ───────────────────────────────────────────────
@@ -68,7 +83,7 @@ resource "aws_iam_role_policy" "bedrock_agent" {
       {
         Effect   = "Allow"
         Action   = ["bedrock:ApplyGuardrail"]
-        Resource = aws_bedrockagent_guardrail.mymom.guardrail_arn
+        Resource = aws_bedrock_guardrail.mymom.guardrail_arn
       }
     ]
   })
@@ -102,10 +117,14 @@ resource "aws_bedrockagent_agent" "mymom" {
     }
   EOT
 
+  # Guardrails version は null_resource で発行後、手動または tfvars で指定する。
+  # ハッカソン期間中は "DRAFT" を使用（版が安定したら番号に固定）。
   guardrail_configuration {
-    guardrail_id      = aws_bedrockagent_guardrail.mymom.guardrail_id
-    guardrail_version = aws_bedrockagent_guardrail_version.mymom_v1.version
+    guardrail_id      = aws_bedrock_guardrail.mymom.guardrail_id
+    guardrail_version = "DRAFT"
   }
+
+  depends_on = [null_resource.guardrail_version]
 }
 
 resource "aws_bedrockagent_agent_alias" "mymom_live" {
@@ -124,9 +143,5 @@ output "bedrock_agent_alias_id" {
 }
 
 output "bedrock_guardrail_id" {
-  value = aws_bedrockagent_guardrail.mymom.guardrail_id
-}
-
-output "bedrock_guardrail_version" {
-  value = aws_bedrockagent_guardrail_version.mymom_v1.version
+  value = aws_bedrock_guardrail.mymom.guardrail_id
 }

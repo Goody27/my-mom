@@ -40,7 +40,7 @@ resource "aws_lambda_function" "analyzer" {
   runtime       = local.lambda_runtime
   handler       = "index.handler"
   filename      = "${local.lambda_src}/analyzer/index.zip"
-  timeout       = 60
+  timeout       = 90 # Bedrock Agent p99 レイテンシ（Guardrails込み）に対して余裕を持たせる
   memory_size   = 256
 
   environment {
@@ -53,7 +53,7 @@ resource "aws_lambda_function" "analyzer" {
       ESCALATION_TOPIC_ARN   = aws_sns_topic.escalation.arn
       BEDROCK_AGENT_ID       = aws_bedrockagent_agent.mymom.agent_id
       BEDROCK_AGENT_ALIAS_ID = aws_bedrockagent_agent_alias.mymom_live.agent_alias_id
-      BEDROCK_GUARDRAIL_ID   = aws_bedrockagent_guardrail.mymom.guardrail_id
+      BEDROCK_GUARDRAIL_ID   = aws_bedrock_guardrail.mymom.guardrail_id
     }
   }
 
@@ -97,6 +97,7 @@ resource "aws_lambda_function" "sender" {
       DEPENDENCY_SCORES_TABLE  = aws_dynamodb_table.dependency_scores.name
       SLACK_BOT_TOKEN_ARN      = var.slack_bot_token_arn
       SLA_HANDLER_FUNCTION_ARN = aws_lambda_function.sla_handler.arn
+      SCHEDULER_ROLE_ARN       = aws_iam_role.eventbridge_sla_scheduler.arn
     }
   }
 
@@ -127,7 +128,8 @@ resource "aws_lambda_function" "interaction_handler" {
 
   environment {
     variables = {
-      REQUESTS_TABLE           = aws_dynamodb_table.requests.name
+      REQUESTS_TABLE              = aws_dynamodb_table.requests.name
+      SLACK_BOT_TOKEN_ARN         = var.slack_bot_token_arn
       # shared/secrets.ts が参照する変数名
       SLACK_BOT_TOKEN_SECRET      = var.slack_bot_token_arn
       SLACK_SIGNING_SECRET_SECRET = var.slack_signing_secret_arn
@@ -135,6 +137,33 @@ resource "aws_lambda_function" "interaction_handler" {
   }
 
   depends_on = [aws_cloudwatch_log_group.interaction_handler]
+}
+
+# ── personality-analyzer ─────────────────────────────────────
+resource "aws_cloudwatch_log_group" "personality_analyzer" {
+  name              = "/aws/lambda/mymom-personality-analyzer"
+  retention_in_days = 7
+}
+
+resource "aws_lambda_function" "personality_analyzer" {
+  function_name = "mymom-personality-analyzer"
+  role          = aws_iam_role.personality_analyzer.arn
+  runtime       = local.lambda_runtime
+  handler       = "index.handler"
+  filename      = "${local.lambda_src}/personality_analyzer/index.zip"
+  timeout       = 300
+  memory_size   = 256
+
+  environment {
+    variables = {
+      JUDGEMENT_LOGS_TABLE      = aws_dynamodb_table.judgement_logs.name
+      PERSONALITY_PROFILES_TABLE = aws_dynamodb_table.personality_profiles.name
+      DEPENDENCY_SCORES_TABLE   = aws_dynamodb_table.dependency_scores.name
+      BEDROCK_MODEL_ID          = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+    }
+  }
+
+  depends_on = [aws_cloudwatch_log_group.personality_analyzer]
 }
 
 # ── sla-handler ───────────────────────────────────────────────
@@ -149,7 +178,7 @@ resource "aws_lambda_function" "sla_handler" {
   runtime       = local.lambda_runtime
   handler       = "index.handler"
   filename      = "${local.lambda_src}/sla_handler/index.zip"
-  timeout       = 360 # SLA 5分待機 (300s) + 処理余裕 60s
+  timeout       = 60 # EventBridge Scheduler が5分後に起動するため sleep 不要
   memory_size   = 256
 
   environment {
