@@ -60,6 +60,12 @@ resource "aws_lambda_function" "analyzer" {
   depends_on = [aws_cloudwatch_log_group.analyzer]
 }
 
+# 前回の中断 apply で作成済みの ESM を state に取り込む
+import {
+  to = aws_lambda_event_source_mapping.requests_stream
+  id = "177c4ec5-7e4d-43a7-b83c-203106e709f6"
+}
+
 # DynamoDB Streams → analyzer
 resource "aws_lambda_event_source_mapping" "requests_stream" {
   event_source_arn  = aws_dynamodb_table.requests.stream_arn
