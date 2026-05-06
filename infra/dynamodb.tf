@@ -96,6 +96,12 @@ resource "aws_dynamodb_table" "judgement_logs" {
     hash_key        = "userId"
     projection_type = "ALL"
   }
+
+  # NFR-05: 90日後に自動削除
+  ttl {
+    attribute_name = "expiresAt"
+    enabled        = true
+  }
 }
 
 resource "aws_dynamodb_table" "sla_records" {
