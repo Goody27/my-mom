@@ -81,9 +81,22 @@ resource "aws_iam_role_policy" "github_deploy" {
           "iam:DeleteOpenIDConnectProvider",
           # API Gateway
           "apigateway:*",
-          # EventBridge Scheduler
+          # EventBridge Scheduler（定期スケジュール + SLA one-time スケジュールグループ）
           "scheduler:CreateSchedule", "scheduler:GetSchedule",
           "scheduler:UpdateSchedule", "scheduler:DeleteSchedule",
+          "scheduler:CreateScheduleGroup", "scheduler:GetScheduleGroup",
+          "scheduler:DeleteScheduleGroup", "scheduler:ListScheduleGroups",
+          # Bedrock Guardrails
+          "bedrock:CreateGuardrail", "bedrock:UpdateGuardrail",
+          "bedrock:GetGuardrail", "bedrock:DeleteGuardrail",
+          "bedrock:CreateGuardrailVersion", "bedrock:ListGuardrailVersions",
+          # Bedrock Agent
+          "bedrock:CreateAgent", "bedrock:UpdateAgent",
+          "bedrock:GetAgent", "bedrock:DeleteAgent", "bedrock:PrepareAgent",
+          "bedrock:CreateAgentAlias", "bedrock:UpdateAgentAlias",
+          "bedrock:GetAgentAlias", "bedrock:DeleteAgentAlias",
+          # Secrets Manager（既存シークレットの ARN 参照に必要）
+          "secretsmanager:DescribeSecret",
           # CloudWatch Logs
           "logs:CreateLogGroup", "logs:DescribeLogGroups",
           "logs:PutRetentionPolicy", "logs:DeleteLogGroup"
