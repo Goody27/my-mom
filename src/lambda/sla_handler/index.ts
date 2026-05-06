@@ -22,9 +22,6 @@ const {
   BEDROCK_MODEL_ID,
 } = process.env;
 
-// SLA待機時間（デフォルト5分）
-const SLA_WAIT_MS = 5 * 60 * 1000;
-
 let slackClient: WebClient | null = null;
 
 async function getSlackClient(): Promise<WebClient> {
@@ -78,10 +75,10 @@ interface SlaEvent {
 export const handler: Handler<SlaEvent> = async (event) => {
   const { requestId, logId } = event;
 
-  // SLA 時間まで待機（Lambda の最大実行時間内）
-  await new Promise((resolve) => setTimeout(resolve, SLA_WAIT_MS));
+  // EventBridge Scheduler から呼ばれる時点で5分経過済み
+  // setTimeout によるスリープは不要（sender が5分後にスケジュール）
 
-  // 待機後、ユーザーが返答したか確認
+  // ユーザーが返答したか確認
   const requestResult = await ddb.send(
     new GetCommand({ TableName: REQUESTS_TABLE!, Key: { requestId } })
   );
