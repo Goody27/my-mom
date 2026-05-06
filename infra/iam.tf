@@ -71,6 +71,16 @@ resource "aws_iam_role_policy" "analyzer" {
         Resource = [aws_dynamodb_table.requests.arn]
       },
       {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetRecords",
+          "dynamodb:GetShardIterator",
+          "dynamodb:DescribeStream",
+          "dynamodb:ListStreams",
+        ]
+        Resource = [aws_dynamodb_table.requests.stream_arn]
+      },
+      {
         Effect   = "Allow"
         Action   = ["dynamodb:PutItem"]
         Resource = [aws_dynamodb_table.judgement_logs.arn]
