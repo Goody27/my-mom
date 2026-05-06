@@ -56,15 +56,21 @@ export const handler: ScheduledHandler = async () => {
   const oldest = String(now - 70);
 
   for (const channel of channels) {
-    const history = await slack.conversations.history({
-      channel: channel.id,
-      oldest,
-      limit: 10,
-    });
+    let historyCursor: string | undefined;
+    const allMessages: NonNullable<Awaited<ReturnType<typeof slack.conversations.history>>["messages"]> = [];
 
-    if (!history.messages) continue;
+    do {
+      const page = await slack.conversations.history({
+        channel: channel.id,
+        oldest,
+        limit: 100,
+        ...(historyCursor ? { cursor: historyCursor } : {}),
+      });
+      if (page.messages) allMessages.push(...page.messages);
+      historyCursor = page.has_more ? page.response_metadata?.next_cursor : undefined;
+    } while (historyCursor);
 
-    for (const msg of history.messages) {
+    for (const msg of allMessages) {
       if (msg.bot_id || msg.subtype) continue;
       if (!msg.text || !msg.ts) continue;
 

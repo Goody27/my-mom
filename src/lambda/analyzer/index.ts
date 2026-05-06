@@ -67,7 +67,27 @@ async function invokeBedrockAgent(
     }
   }
 
-  return JSON.parse(fullText) as AgentResponse;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(fullText);
+  } catch {
+    throw new Error(`Bedrock Agent returned non-JSON response: ${fullText.slice(0, 200)}`);
+  }
+
+  const res = parsed as Record<string, unknown>;
+  if (!res.decision || !["APPROVE", "DECLINE", "ESCALATE"].includes(res.decision as string)) {
+    throw new Error(`Bedrock Agent returned invalid decision: ${JSON.stringify(res)}`);
+  }
+  if (typeof res.replyText !== "string") {
+    throw new Error(`Bedrock Agent missing replyText: ${JSON.stringify(res)}`);
+  }
+
+  return {
+    decision: res.decision as AgentResponse["decision"],
+    replyText: res.replyText,
+    quickReplies: Array.isArray(res.quickReplies) ? res.quickReplies : [],
+    reason: typeof res.reason === "string" ? res.reason : "",
+  };
 }
 
 async function processRecord(record: DynamoDBRecord): Promise<void> {
