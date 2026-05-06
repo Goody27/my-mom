@@ -186,8 +186,8 @@ resource "aws_iam_role_policy" "personality_analyzer" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = ["dynamodb:Query"]
+        Effect = "Allow"
+        Action = ["dynamodb:Query"]
         Resource = [
           aws_dynamodb_table.judgement_logs.arn,
           "${aws_dynamodb_table.judgement_logs.arn}/index/userId-index",

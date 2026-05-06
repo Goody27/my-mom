@@ -128,8 +128,8 @@ resource "aws_lambda_function" "interaction_handler" {
 
   environment {
     variables = {
-      REQUESTS_TABLE              = aws_dynamodb_table.requests.name
-      SLACK_BOT_TOKEN_ARN         = var.slack_bot_token_arn
+      REQUESTS_TABLE      = aws_dynamodb_table.requests.name
+      SLACK_BOT_TOKEN_ARN = var.slack_bot_token_arn
       # shared/secrets.ts が参照する変数名
       SLACK_BOT_TOKEN_SECRET      = var.slack_bot_token_arn
       SLACK_SIGNING_SECRET_SECRET = var.slack_signing_secret_arn
@@ -156,10 +156,10 @@ resource "aws_lambda_function" "personality_analyzer" {
 
   environment {
     variables = {
-      JUDGEMENT_LOGS_TABLE      = aws_dynamodb_table.judgement_logs.name
+      JUDGEMENT_LOGS_TABLE       = aws_dynamodb_table.judgement_logs.name
       PERSONALITY_PROFILES_TABLE = aws_dynamodb_table.personality_profiles.name
-      DEPENDENCY_SCORES_TABLE   = aws_dynamodb_table.dependency_scores.name
-      BEDROCK_MODEL_ID          = "anthropic.claude-3-5-sonnet-20241022-v2:0"
+      DEPENDENCY_SCORES_TABLE    = aws_dynamodb_table.dependency_scores.name
+      BEDROCK_MODEL_ID           = "anthropic.claude-3-5-sonnet-20241022-v2:0"
     }
   }
 

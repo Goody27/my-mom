@@ -4,22 +4,22 @@ locals {
     "mymom-requests" = {
       hash_key = "requestId"
       gsi = [{
-        name       = "userId-index"
-        hash_key   = "userId"
+        name     = "userId-index"
+        hash_key = "userId"
       }]
       attributes = [
         { name = "requestId", type = "S" },
-        { name = "userId",    type = "S" },
+        { name = "userId", type = "S" },
       ]
     }
   }
 
   # Streamsなし
   simple_tables = {
-    "mymom-users"              = { hash_key = "userId",  attributes = [{ name = "userId",  type = "S" }] }
-    "mymom-characters"         = { hash_key = "userId",  attributes = [{ name = "userId",  type = "S" }] }
-    "mymom-plans"              = { hash_key = "userId",  attributes = [{ name = "userId",  type = "S" }] }
-    "mymom-dependency-scores"  = { hash_key = "userId",  attributes = [{ name = "userId",  type = "S" }] }
+    "mymom-users"                = { hash_key = "userId", attributes = [{ name = "userId", type = "S" }] }
+    "mymom-characters"           = { hash_key = "userId", attributes = [{ name = "userId", type = "S" }] }
+    "mymom-plans"                = { hash_key = "userId", attributes = [{ name = "userId", type = "S" }] }
+    "mymom-dependency-scores"    = { hash_key = "userId", attributes = [{ name = "userId", type = "S" }] }
     "mymom-personality-profiles" = { hash_key = "userId", attributes = [{ name = "userId", type = "S" }] }
   }
 }
