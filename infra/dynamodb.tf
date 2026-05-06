@@ -53,28 +53,40 @@ resource "aws_dynamodb_table" "users" {
   name         = "mymom-users"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "userId"
-  attribute { name = "userId"; type = "S" }
+  attribute {
+    name = "userId"
+    type = "S"
+  }
 }
 
 resource "aws_dynamodb_table" "characters" {
   name         = "mymom-characters"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "userId"
-  attribute { name = "userId"; type = "S" }
+  attribute {
+    name = "userId"
+    type = "S"
+  }
 }
 
 resource "aws_dynamodb_table" "plans" {
   name         = "mymom-plans"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "userId"
-  attribute { name = "userId"; type = "S" }
+  attribute {
+    name = "userId"
+    type = "S"
+  }
 }
 
 resource "aws_dynamodb_table" "dependency_scores" {
   name         = "mymom-dependency-scores"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "userId"
-  attribute { name = "userId"; type = "S" }
+  attribute {
+    name = "userId"
+    type = "S"
+  }
 }
 
 resource "aws_dynamodb_table" "judgement_logs" {
@@ -82,9 +94,18 @@ resource "aws_dynamodb_table" "judgement_logs" {
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "logId"
 
-  attribute { name = "logId";     type = "S" }
-  attribute { name = "requestId"; type = "S" }
-  attribute { name = "userId";    type = "S" }
+  attribute {
+    name = "logId"
+    type = "S"
+  }
+  attribute {
+    name = "requestId"
+    type = "S"
+  }
+  attribute {
+    name = "userId"
+    type = "S"
+  }
 
   global_secondary_index {
     name            = "requestId-index"
@@ -109,8 +130,14 @@ resource "aws_dynamodb_table" "sla_records" {
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "slaId"
 
-  attribute { name = "slaId";     type = "S" }
-  attribute { name = "requestId"; type = "S" }
+  attribute {
+    name = "slaId"
+    type = "S"
+  }
+  attribute {
+    name = "requestId"
+    type = "S"
+  }
 
   global_secondary_index {
     name            = "requestId-index"
@@ -124,9 +151,18 @@ resource "aws_dynamodb_table" "chat_messages" {
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "messageId"
 
-  attribute { name = "messageId"; type = "S" }
-  attribute { name = "userId";    type = "S" }
-  attribute { name = "sessionId"; type = "S" }
+  attribute {
+    name = "messageId"
+    type = "S"
+  }
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+  attribute {
+    name = "sessionId"
+    type = "S"
+  }
 
   global_secondary_index {
     name            = "userId-sessionId-index"
@@ -145,5 +181,8 @@ resource "aws_dynamodb_table" "personality_profiles" {
   name         = "mymom-personality-profiles"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "userId"
-  attribute { name = "userId"; type = "S" }
+  attribute {
+    name = "userId"
+    type = "S"
+  }
 }
