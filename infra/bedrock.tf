@@ -34,13 +34,13 @@ resource "aws_bedrock_guardrail" "mymom" {
 # null_resource で terraform apply 後に自動実行。
 resource "null_resource" "guardrail_version" {
   triggers = {
-    guardrail_id = aws_bedrock_guardrail.mymom.id
+    guardrail_id = aws_bedrock_guardrail.mymom.guardrail_id
   }
 
   provisioner "local-exec" {
     command = <<-EOC
       aws bedrock create-guardrail-version \
-        --guardrail-identifier ${aws_bedrock_guardrail.mymom.id} \
+        --guardrail-identifier ${aws_bedrock_guardrail.mymom.guardrail_id} \
         --region ${var.aws_region} \
         --description "v1 — 初回リリース" \
         --query 'version' --output text > /tmp/mymom_guardrail_version.txt
