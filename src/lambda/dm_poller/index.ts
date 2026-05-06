@@ -50,6 +50,7 @@ export const handler: ScheduledHandler = async () => {
   const botUserId = authResult.user_id as string;
 
   const channels = await fetchAllImChannels(slack, botUserId);
+  console.log(`dm_poller: botUserId=${botUserId} channels=${channels.length}`);
 
   const now = Math.floor(Date.now() / 1000);
   // 直近70秒（1分ポーリング + 10秒バッファ）
@@ -70,6 +71,7 @@ export const handler: ScheduledHandler = async () => {
       historyCursor = page.has_more ? page.response_metadata?.next_cursor : undefined;
     } while (historyCursor);
 
+    console.log(`dm_poller: channel=${channel.id} user=${channel.user} messages=${allMessages.length}`);
     for (const msg of allMessages) {
       if (msg.bot_id || msg.subtype) continue;
       if (!msg.text || !msg.ts) continue;
