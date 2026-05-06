@@ -19,7 +19,7 @@ provider "aws" {
     tags = {
       Project     = "MyMom"
       Environment = var.environment
-      Team        = "音部に抱っこ"
+      Team        = "Otobe-ni-dakko"
     }
   }
 }

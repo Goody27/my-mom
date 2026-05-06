@@ -136,6 +136,15 @@ resource "aws_iam_role_policy" "sender" {
         Resource = ["arn:aws:scheduler:*:*:schedule/mymom-sla/*"]
       },
       {
+        Effect = "Allow"
+        Action = [
+          "sqs:ReceiveMessage",
+          "sqs:DeleteMessage",
+          "sqs:GetQueueAttributes",
+        ]
+        Resource = [aws_sqs_queue.send_queue.arn]
+      },
+      {
         Effect   = "Allow"
         Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
         Resource = ["arn:aws:logs:*:*:*"]
