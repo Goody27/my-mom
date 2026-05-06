@@ -92,38 +92,36 @@ async function processRecord(record: SQSRecord): Promise<void> {
   if (dmChannelId) {
     await slack.chat.postMessage({
       channel: dmChannelId,
-      blocks: [
-        {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `✅ *断っておいたよ。*\n\n> ${log.replyText}\n\nお母さんがあなたの代わりに送っておいたよ。何もしなくていいからね。\n\n_今月の依存スコア: ${newScore} 回_`,
-          },
-        },
-        ...(log.quickReplies?.length
-          ? [
+      text: `✅ *断っておいたよ。*\n\n> ${log.replyText}\n\nお母さんがあなたの代わりに送っておいたよ。何もしなくていいからね。\n\n_今月の依存スコア: ${newScore} 回_`,
+      ...(log.quickReplies?.length
+        ? {
+            blocks: [
               {
-                type: "section",
+                type: "section" as const,
                 text: {
-                  type: "mrkdwn",
-                  text: "気が変わったら、返信を選んでね:",
+                  type: "mrkdwn" as const,
+                  text: `✅ *断っておいたよ。*\n\n> ${log.replyText}\n\nお母さんがあなたの代わりに送っておいたよ。何もしなくていいからね。\n\n_今月の依存スコア: ${newScore} 回_`,
                 },
               },
               {
-                type: "actions",
+                type: "section" as const,
+                text: { type: "mrkdwn" as const, text: "気が変わったら、返信を選んでね:" },
+              },
+              {
+                type: "actions" as const,
                 block_id: `actions_${requestId}`,
                 elements: (log.quickReplies as string[]).map(
                   (label: string, i: number) => ({
-                    type: "button",
-                    text: { type: "plain_text", text: label },
+                    type: "button" as const,
+                    text: { type: "plain_text" as const, text: label },
                     action_id: `quick_reply_${i}`,
                     value: JSON.stringify({ requestId, reply: label }),
                   })
                 ),
               },
-            ]
-          : []),
-      ],
+            ],
+          }
+        : {}),
     });
   }
 

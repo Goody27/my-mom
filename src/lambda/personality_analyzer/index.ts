@@ -1,5 +1,5 @@
 import { ScheduledHandler } from "aws-lambda";
-import { DynamoDBDocumentClient, QueryCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, ScanCommand, QueryCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 
@@ -69,16 +69,10 @@ ${logs
 export const handler: ScheduledHandler = async () => {
   // dependency_scores をスキャンして全 userId を取得
   // 本番では GSI を活用するが MVP ではスコアが存在するユーザーのみ対象
+  // dependency_scores は hash_key=userId のみのシンプルテーブルなので Scan で全件取得
   const { Items: scoreItems } = await ddb.send(
-    new QueryCommand({
-      TableName: DEPENDENCY_SCORES_TABLE!,
-      // dependency_scores は hash_key=userId のシンプルテーブルなので全件 scan が必要だが
-      // MVP では seed.sh で投入したユーザー群のみ対象（テーブルサイズが小さい前提）
-      KeyConditionExpression: "userId > :empty",
-      ExpressionAttributeValues: { ":empty": "" },
-      Limit: 100,
-    }).catch(() => ({ Items: [] }))
-  );
+    new ScanCommand({ TableName: DEPENDENCY_SCORES_TABLE!, Limit: 100 })
+  ).catch(() => ({ Items: [] as Record<string, unknown>[] }));
 
   if (!scoreItems || scoreItems.length === 0) return;
 

@@ -28,7 +28,7 @@ const {
 interface AgentResponse {
   decision: "APPROVE" | "DECLINE" | "ESCALATE";
   replyText: string;
-  quickReplies: [string, string];
+  quickReplies: string[];
   reason: string;
 }
 
