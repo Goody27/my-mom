@@ -232,6 +232,36 @@ resource "aws_iam_role_policy" "personality_analyzer" {
   })
 }
 
+# ── chat-handler ─────────────────────────────────────────────
+resource "aws_iam_role" "chat_handler" {
+  name               = "mymom-chat-handler-role"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume.json
+}
+
+resource "aws_iam_role_policy" "chat_handler" {
+  role = aws_iam_role.chat_handler.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["bedrock:InvokeAgent"]
+        Resource = [aws_bedrockagent_agent.mymom.agent_arn]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Resource = [var.slack_bot_token_arn, var.slack_signing_secret_arn]
+      },
+      {
+        Effect   = "Allow"
+        Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+        Resource = ["arn:aws:logs:*:*:*"]
+      }
+    ]
+  })
+}
+
 # ── sla-handler ───────────────────────────────────────────────
 resource "aws_iam_role" "sla_handler" {
   name               = "mymom-sla-handler-role"

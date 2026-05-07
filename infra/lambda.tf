@@ -145,6 +145,33 @@ resource "aws_lambda_function" "interaction_handler" {
   depends_on = [aws_cloudwatch_log_group.interaction_handler]
 }
 
+# ── chat-handler ─────────────────────────────────────────────
+resource "aws_cloudwatch_log_group" "chat_handler" {
+  name              = "/aws/lambda/mymom-chat-handler"
+  retention_in_days = 7
+}
+
+resource "aws_lambda_function" "chat_handler" {
+  function_name = "mymom-chat-handler"
+  role          = aws_iam_role.chat_handler.arn
+  runtime       = local.lambda_runtime
+  handler       = "index.handler"
+  filename      = "${local.lambda_src}/chat_handler/index.zip"
+  timeout       = 60
+  memory_size   = 256
+
+  environment {
+    variables = {
+      BEDROCK_AGENT_ID         = aws_bedrockagent_agent.mymom.agent_id
+      BEDROCK_AGENT_ALIAS_ID   = aws_bedrockagent_agent_alias.mymom_live.agent_alias_id
+      SLACK_BOT_TOKEN_ARN      = var.slack_bot_token_arn
+      SLACK_SIGNING_SECRET_ARN = var.slack_signing_secret_arn
+    }
+  }
+
+  depends_on = [aws_cloudwatch_log_group.chat_handler]
+}
+
 # ── personality-analyzer ─────────────────────────────────────
 resource "aws_cloudwatch_log_group" "personality_analyzer" {
   name              = "/aws/lambda/mymom-personality-analyzer"
