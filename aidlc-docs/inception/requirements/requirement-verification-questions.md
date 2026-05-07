@@ -35,7 +35,7 @@ A) AWS CDK（TypeScript）
 B) AWS SAM（YAML）
 C) Terraform
 
-[Answer]: B — AWS SAM。Lambda中心のサーバーレス構成に最速。ハッカソンタイムラインに最適。
+[Answer]: C — Terraform。SAMは検討段階で除外。Terraformで全リソース（Bedrock Agent含む）を一元管理。
 
 ## Q6: セキュリティ拡張を有効化しますか？
 A) はい — セキュリティベースラインルールを適用
