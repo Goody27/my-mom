@@ -5,7 +5,7 @@
 | Field | Value |
 |-------|-------|
 | Project | MyMom（マイマム） |
-| Team | 音部に抱っこ |
+| Team | おんぶにだっこ（音部に抱っこ） |
 | Event | AWS Summit Japan 2026 AI-DLC Hackathon |
 | Request Type | New Project (Greenfield) |
 | Complexity | Complex |
