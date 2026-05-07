@@ -5,7 +5,7 @@
 
 AIが「お母さん」として先回りして意思決定・行動を代行し、失敗の責任を肩代わりするプッシュ型サービス。
 
-**チーム**: 音部に抱っこ
+**チーム**: おんぶにだっこ（音部に抱っこ）
 **イベント**: AWS Summit Japan 2026 AI-DLC Hackathon
 
 ---
@@ -41,11 +41,13 @@ MyMomが検知する → MyMomが判断する → MyMomが実行する → ユ�
 
 このプロダクトは [AI-DLCメソドロジー](https://github.com/awslabs/aidlc-workflows) に従って開発:
 
-| フェーズ | AIが行ったこと | エビデンス |
-|---------|-------------|---------|
-| **Inception（構想）** | 要件定義・ユーザーストーリー・ドメインモデル・アプリ設計を生成 | `aidlc-docs/inception/` |
-| **Construction（実装）** | ユニットごとの機能設計・NFR・インフラ設計・Lambdaコード生成 | `aidlc-docs/construction/` + `src/` |
-| **Operation（改善）** | 8タイプのAI評価者による15ループのマルチ評価者レビュー（致命的バグ4件含む修正適用） | `../review/loop_log.md` |
+| フェーズ | AIが行ったこと | 人間が行ったこと | エビデンス |
+|---------|-------------|--------------|---------|
+| **Inception（構想）** | 要件定義・ユーザーストーリー・ドメインモデル・アプリ設計を生成 | コンセプト決定・承認 | `aidlc-docs/inception/` |
+| **Construction（実装）** | 機能設計・NFR・インフラ設計・全7LambdaコードをClaude Codeが生成。Terraform IaCも生成 | レビュー・承認・マージ | `aidlc-docs/construction/` + `src/` + `infra/` |
+| **Operation（改善）** | 8タイプのAI評価者による15ループのマルチ評価者レビュー。致命的バグ4件を検出・修正 | 最終承認 | `aidlc-docs/audit.md` |
+
+> **このREADMEも、要件定義もコードも、AIが書きました。人間はアイデアを出し、承認しただけです。**
 
 ---
 
@@ -56,7 +58,7 @@ EventBridge（1分）→ dm-poller Lambda → DynamoDB
                                            ↓（Streams）
                                     analyzer Lambda → Bedrock Agent
                                                            ↓（Guardrails + Claude 3.5 Sonnet）
-                                                    SQS DelayQueue（3秒）
+                                                    SQS DelayQueue（DLQ付き）
                                                            ↓
                                                     sender Lambda → Slack
                                                                        ↓
@@ -74,7 +76,7 @@ EventBridge（1分）→ dm-poller Lambda → DynamoDB
 - **Claude 3.5 Sonnet** — 断り文・チャット応答・パーソナリティ分析
 - **Lambda（7関数）** — イベント駆動・サーバーレス実行
 - **DynamoDB（9テーブル）** — 全エンティティの永続化
-- **SQS DelayQueue** — 3秒の取り消しウィンドウ実装
+- **SQS DelayQueue** — 非同期送信キュー（DLQ付きでリトライ保証）
 - **EventBridge Scheduler** — Push型トリガー（1分間隔 + 週次）
 - **API Gateway** — Slack Webhook + チャットエンドポイント
 - **Secrets Manager** — トークン管理（ハードコード禁止）
