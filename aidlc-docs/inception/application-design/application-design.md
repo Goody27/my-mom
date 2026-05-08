@@ -45,7 +45,7 @@ graph TB
 
     subgraph Messaging["メッセージング・スケジューリング"]
         EB["Amazon EventBridge Scheduler\n1分間隔cron（DM監視）\n週次cron（パーソナリティ分析）"]
-        SQS["Amazon SQS\nDelayQueue\n(DelaySeconds=3)\n3秒カウントダウン実装"]
+        SQS["Amazon SQS\nDelayQueue\n非同期送信キュー\n(DLQ付き)"]
         SNS["Amazon SNS\nエスカレーション通知"]
     end
 
@@ -122,7 +122,7 @@ graph TB
 | **Bedrock Guardrails** | 倫理フィルタ | Agentに直接アタッチ可能。Lambda側にロジック不要 |
 | **Claude 3.5 Sonnet** | 全テキスト生成 | 日本語品質・構造化出力（JSON schema）対応 |
 | **EventBridge Scheduler** | Push型のトリガー起点 | ユーザーのアクションなしにcronで自動起動 |
-| **SQS DelayQueue** | 3秒カウントダウン | `DelaySeconds=3`だけで取り消しウィンドウを実現 |
+| **SQS DelayQueue** | 非同期送信キュー | DLQ付きでリトライ保証。送信失敗を取りこぼさない |
 | **DynamoDB Streams** | 依頼登録の即時検知 | 書き込み→処理のリアクティブ連鎖を構築 |
 
 ---
@@ -139,16 +139,16 @@ graph TB
 
 ## 重要な設計決定
 
-### SQSキャンセルパターン（バグ修正済み）
+### SQS冪等性パターン
 
-SQSの`DeleteMessage`は`ReceiptHandle`が必要だが、`DelaySeconds`中は`ReceiptHandle`が取得不可。
+SQSのAt-Least-Once配信により重複実行が起こりうる。
 
-**解決策**: DynamoDB状態フラグ（PENDING→CANCELLED）で排他制御。
-Sender Lambdaは受信時に状態を確認し、CANCELLEDなら即リターン（べき等処理）。
+**解決策**: DynamoDB状態フラグ（PENDING→COMPLETED）で冪等制御。
+Sender Lambdaは受信時に状態を確認し、COMPLETED済みなら即リターン。
 
 ```
 SQS受信後 → DynamoDB GetItem(status)
-  status == CANCELLED → return（何もしない）
+  status == COMPLETED → return（重複排除）
   status == PENDING   → Slack送信 → UpdateItem(status=COMPLETED)
 ```
 

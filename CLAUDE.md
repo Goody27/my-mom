@@ -7,7 +7,7 @@
 A push-type AI service where AI acts as the user's "mom", proactively executing decisions before the user is even aware of the need. Users delegate judgment entirely to MyMom.
 
 ## Team
-チーム名: 音部に抱っこ
+チーム名: おんぶにだっこ（音部に抱っこ）
 Event: AWS Summit Japan 2026 AI-DLC Hackathon
 
 ## Tech Stack

@@ -3,26 +3,34 @@
 > **「人をダメにするシステム」**
 > 使えば使うほど思考しなくなる、信頼委任設計。
 
-AIが「お母さん」として先回りして意思決定・行動を代行し、失敗の責任を肩代わりするプッシュ型サービス。
+MyMomは、意思決定そのものではなく、意思決定の結果に伴う**"責任の重さ"をお母さんに委ねる**AIサービスです。
 
-**チーム**: 音部に抱っこ
+人が疲れているのは「考えること」ではなく、**「判断した結果の責任を自分で負うこと」**です。
+MyMomはその責任を引き受けます。
+
+**チーム**: おんぶにだっこ（音部に抱っこ）
 **イベント**: AWS Summit Japan 2026 AI-DLC Hackathon
 
 ---
 
 ## テーゼ
 
-既存のAIはすべてプル型:
+既存のAIはすべて、ユーザーが指示して初めて動く:
 ```
-ユーザーが指示する → AIが応答する
+ユーザーが考える → ユーザーが指示する → AIが動く → ユーザーが結果の責任を負う
 ```
 
-MyMomはプッシュ型:
+MyMomは、考えることも責任を負うことも不要:
 ```
 MyMomが検知する → MyMomが判断する → MyMomが実行する → ユーザーは「断っておいたよ」通知を受け取るだけ
 ```
 
 ユーザーは何も頼んでいない。MyMomはもう断っていた。
+
+### 今回のMVPについて
+
+> 「今日はMyMomの全構想のうち、最も心理的コストが高い**"断る責任の委任"**だけをSlack上で実演します。
+> Slack断り代行はMyMomの"最小実証"です。本質は、Slackの外の、もっと広い生活全体にあります。」
 
 ---
 
@@ -37,15 +45,32 @@ MyMomが検知する → MyMomが判断する → MyMomが実行する → ユ�
 
 ---
 
+## Human Decisions / AI Generated Artifacts
+
+このプロダクトの開発で、人間が決めたこととAIが生成したことを明示します:
+
+| 人間が決めたこと | Claude Code が生成したこと |
+|---------------|-------------------------|
+| 「責任委任」というコアコンセプト | 要件定義・ユーザーストーリー・ペルソナ |
+| Slackをデモプラットフォームに選ぶ | アーキテクチャ設計・ドメインモデル |
+| チームメンバー自身がペルソナ | 全7Lambda関数のコード |
+| 「お母さん」というキャラクター | Terraform IaC（全AWSリソース） |
+| ハッカソン提出戦略・発表構成 | CI/CDパイプライン・デモスクリプト |
+| AI-DLCメソドロジーで開発する | このREADMEを含む全aidlc-docsドキュメント |
+
+---
+
 ## AI-DLCライフサイクル
 
 このプロダクトは [AI-DLCメソドロジー](https://github.com/awslabs/aidlc-workflows) に従って開発:
 
-| フェーズ | AIが行ったこと | エビデンス |
-|---------|-------------|---------|
-| **Inception（構想）** | 要件定義・ユーザーストーリー・ドメインモデル・アプリ設計を生成 | `aidlc-docs/inception/` |
-| **Construction（実装）** | ユニットごとの機能設計・NFR・インフラ設計・Lambdaコード生成 | `aidlc-docs/construction/` + `src/` |
-| **Operation（改善）** | 8タイプのAI評価者による15ループのマルチ評価者レビュー（致命的バグ4件含む修正適用） | `../review/loop_log.md` |
+| フェーズ | AIが行ったこと | 人間が行ったこと | エビデンス |
+|---------|-------------|--------------|---------|
+| **Inception（構想）** | 要件定義・ユーザーストーリー・ドメインモデル・アプリ設計を生成 | コンセプト決定・承認 | `aidlc-docs/inception/` |
+| **Construction（実装）** | 機能設計・NFR・インフラ設計・全7LambdaコードをClaude Codeが生成。Terraform IaCも生成 | レビュー・承認・マージ | `aidlc-docs/construction/` + `src/` + `infra/` |
+| **Operation（改善）** | 8タイプのAI評価者による15ループのマルチ評価者レビュー。致命的バグ4件を検出・修正 | 最終承認 | `aidlc-docs/audit.md` |
+
+> **このREADMEも、要件定義もコードも、AIが書きました。人間はアイデアを出し、承認しただけです。**
 
 ---
 
@@ -56,7 +81,7 @@ EventBridge（1分）→ dm-poller Lambda → DynamoDB
                                            ↓（Streams）
                                     analyzer Lambda → Bedrock Agent
                                                            ↓（Guardrails + Claude 3.5 Sonnet）
-                                                    SQS DelayQueue（3秒）
+                                                    SQS DelayQueue（DLQ付き）
                                                            ↓
                                                     sender Lambda → Slack
                                                                        ↓
@@ -74,7 +99,7 @@ EventBridge（1分）→ dm-poller Lambda → DynamoDB
 - **Claude 3.5 Sonnet** — 断り文・チャット応答・パーソナリティ分析
 - **Lambda（7関数）** — イベント駆動・サーバーレス実行
 - **DynamoDB（9テーブル）** — 全エンティティの永続化
-- **SQS DelayQueue** — 3秒の取り消しウィンドウ実装
+- **SQS DelayQueue** — 非同期送信キュー（DLQ付きでリトライ保証）
 - **EventBridge Scheduler** — Push型トリガー（1分間隔 + 週次）
 - **API Gateway** — Slack Webhook + チャットエンドポイント
 - **Secrets Manager** — トークン管理（ハードコード禁止）

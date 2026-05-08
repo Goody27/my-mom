@@ -15,9 +15,9 @@
 | NFR Requirements | ✅ | Performance + ethics constraints |
 | NFR Design | ✅ | Resilience patterns needed |
 | Infrastructure Design | ✅ | AWS multi-service architecture |
-| Code Generation | 🔄 In Progress | |
-| Build and Test | ⬜ Pending | |
-| Operations | ⬜ Pending | |
+| Code Generation | ✅ Complete | 全7Lambda関数を Claude Code が生成、人間はレビュー・承認のみ |
+| Build and Test | ✅ Complete | Terraform CI/CD + ローカルビルド確認済み |
+| Operations | ✅ Complete | デモシナリオ・モニタリング設定完了 |
 
 ## Phase Visualization
 
@@ -25,15 +25,19 @@
 INCEPTION ──────────────────────────────────────── ✅ Complete
   └── Requirements → User Stories → App Design → Units
 
-CONSTRUCTION ───────────────────────────────────── 🔄 In Progress
-  ├── slack-decline-agent  [Design ✅] [Code ⬜]
-  ├── chat-ui              [Design ✅] [Code ⬜]
-  └── personality-analyzer [Design ✅] [Code ⬜]
+CONSTRUCTION ───────────────────────────────────── ✅ Complete
+  ├── slack-decline-agent  [Design ✅] [Code ✅]
+  ├── chat-ui              [Design ✅] [Code ✅]
+  └── personality-analyzer [Design ✅] [Code ✅]
 
-OPERATIONS ─────────────────────────────────────── ⬜ Pending
-  └── Demo + Monitoring
+OPERATIONS ─────────────────────────────────────── ✅ Complete
+  └── Demo scenario + Monitoring + Fallback plan
 ```
 
-## MVP Priority
+## AI-DLC開発サマリー
 
-Code generation priority: `slack-decline-agent` first (demo core).
+| フェーズ | AIが担当したこと | 人間が担当したこと |
+|---------|----------------|-----------------|
+| Inception | 要件定義・ユーザーストーリー・アプリ設計・ユニット分解を生成 | コンセプト決定・承認 |
+| Construction | 機能設計・インフラ設計・全Lambdaコード・Terraform IaCを生成 | レビュー・承認・マージ |
+| Operations | デモシナリオ・監視設定・フォールバック計画を生成 | 最終確認 |
