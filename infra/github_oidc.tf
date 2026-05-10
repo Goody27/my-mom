@@ -1,7 +1,7 @@
 variable "github_repo" {
   type        = string
   description = "GitHub リポジトリ (owner/repo 形式)"
-  default     = "Goody27/my-mother"
+  default     = "Goody27/my-mom"
 }
 
 # GitHub Actions OIDC プロバイダー（アカウントに既存のものを参照）

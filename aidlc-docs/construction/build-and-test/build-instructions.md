@@ -12,7 +12,7 @@
 ## ディレクトリ構成
 
 ```
-my-mother/
+my-mom/
 ├── infra/                     # Terraformファイル
 │   ├── providers.tf
 │   ├── variables.tf
